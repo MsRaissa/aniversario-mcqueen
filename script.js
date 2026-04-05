@@ -196,7 +196,7 @@ this.speed = this.height * (isPlayer ? 0.08 : 0.04);  }
     const diff = this.y - ballY;
     if (diff < 0 && diff < -this.height * 0.01) { 
       this.switchMoveDirection('down');
-    } else if (diff > 0 && diff > this.height * 2.5) {
+    } else if (diff > 0 && diff > this.height * 3.5) {
       this.switchMoveDirection('up');
     } else {
       this.switchMoveDirection('none');
