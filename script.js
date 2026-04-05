@@ -151,9 +151,9 @@ class Ball {
   }
 
   update(ballArc) {
-    this.x       += this.velocity.x;
+    this.x += this.velocity.x;
     this.shadowY += this.velocity.y;
-    this.y        = this.shadowY - ballArc;
+    this.y = this.shadowY - ballArc;
   }
 
   render() {
@@ -189,24 +189,37 @@ class Paddle {
     // Velocidades distintas para jogador e IA
 this.speed = this.height * (isPlayer ? 0.08 : 0.04);  }
 
+  autoMove(ballY) {
+    // 👇 AQUI ESTÁ O AJUSTE DE VELOCIDADE DA REAÇÃO (CÉREBRO)
+    // Diminuímos a "zona morta" (0.3 -> 0.1). 
+    // Isso faz ela começar a se mover muito mais cedo quando a bola se aproxima.
+    const diff = this.y - ballY;
+    if (diff < 0 && diff < -this.height * 0.01) { 
+      this.switchMoveDirection('down');
+    } else if (diff > 0 && diff > this.height * 2.5) {
+      this.switchMoveDirection('up');
+    } else {
+      this.switchMoveDirection('none');
+    }
+    
+    // 👇 AQUI ESTÁ O AJUSTE DE VELOCIDADE DE MOVIMENTO (MOTOR)
+    // Como definimos anteriormente, o speedMultiplier para a CPU (isPlayer = false) é 0.01.
+    // Vamos aumentar esse valor para a Sally se mover mais rápido fisicamente.
+    // Procure pela função 'move()' logo abaixo e altere:
+  }
+
   move() {
+    const speed = this.height * 0.05;
     if (this.moveDirection === 'up' && this.y > this.topBound) {
-      this.y -= this.speed;
-      this.x += (this.speed / this.slope);
+      this.y -= speed
+      this.x += (speed/this.slope)
+      this.counter += this.animationSpeed;
     } else if (this.moveDirection === 'down' && this.y < this.bottomBound) {
-      this.y += this.speed;
-      this.x -= (this.speed / this.slope);
+      this.y += speed
+      this.x -= (speed/this.slope)
+      this.counter += this.animationSpeed;
     }
   }
-
-  autoMove(ballY) {
-    const diff = this.y - ballY;
-    if      (diff < -this.height * 0.3) this.switchMoveDirection('down');
-    else if (diff >  this.height * 0.3) this.switchMoveDirection('up');
-    else                                this.switchMoveDirection('none');
-    this.move();
-  }
-
   switchMoveDirection(dir) {
     this.moveDirection = dir;
     if (dir !== 'none') this.playerHasMoved = true;

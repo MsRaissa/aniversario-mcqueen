@@ -526,7 +526,7 @@
 
     .famoso-card:hover {
       transform: translateY(-8px);
-      box-shadow: 0 15px 40px rgba(0,0,0,0.55);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.55);
       border-color: rgba(255,204,0,0.55);
     }
 
@@ -537,7 +537,7 @@
     }
 
     .famoso-card p {
-      font-size: clamp(25px, 1.9vw, 17px);
+      font-size: clamp(15px, 1.9vw, 17px);
       line-height: 1.75;
       color: #d4d4d4;
       flex-grow: 1; /* altura uniforme nos cards */
@@ -877,7 +877,7 @@
         this.playerHasMoved = false;
       }
       move() {
-        const speed = this.height * (this.isPlayer ? 0.08 : 0.01);
+        const speed = this.height * 0.06; // MUITO rápida
         if (this.moveDirection === 'up' && this.y > this.topBound) {
           this.y -= speed;
           this.x += (speed / this.slope);
