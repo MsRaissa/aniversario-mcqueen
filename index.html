@@ -492,34 +492,41 @@
     }
 
     .fullscreen-btn:hover { background: rgba(232,0,14,0.9); }
-
-    /* ── Cards das homenagens ── */
+    /* --- Cards dos famosos --- */
     .famosos-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
+      /* Isso garante 2 colunas de tamanhos iguais */
+      grid-template-columns: 1fr 1fr; 
+      gap: 22px;
       margin-bottom: 80px;
     }
 
+    /* Ajuste para celulares: quando a tela for menor que 768px, vira 1 coluna */
+    @media (max-width: 768px) {
+      .famosos-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .famoso-card {
-      background: rgba(25, 25, 35, 0.85);
+      background: rgba(22, 22, 33, 0.72);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      padding: 28px 26px;
-      border-radius: 32px;
-      border: 1px solid rgba(255,255,255,0.1);
-      /* borda lateral colorida — definida pelas classes utilitárias abaixo */
-      border-left-width: 5px;
-      border-left-style: solid;
-      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      padding: 28px 24px;
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-left-width: 5px; 
+      transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.28);
+      
+      /* Adicione isso para todos os cards terem a mesma altura na mesma linha */
       display: flex;
       flex-direction: column;
     }
 
     .famoso-card:hover {
       transform: translateY(-8px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.55);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.55);
       border-color: rgba(255,204,0,0.55);
     }
 
@@ -530,7 +537,7 @@
     }
 
     .famoso-card p {
-      font-size: clamp(15px, 1.9vw, 17px);
+      font-size: clamp(25px, 1.9vw, 17px);
       line-height: 1.75;
       color: #d4d4d4;
       flex-grow: 1; /* altura uniforme nos cards */
