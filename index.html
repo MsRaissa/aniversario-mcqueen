@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title> Convite Especial VIP - Copa Pistão</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+  <!-- Favicon emoji -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏁</text></svg>">
+
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:ital,wght@0,400;0,700;0,800;1,900&display=swap" rel="stylesheet">
+
+  <!-- p5.js versão 0.5.11 (igual ao original) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.11/p5.min.js"></script>
+
+  <style>
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --red:        #e8000e;
+      --gold:       #ffcc00;
+      --dark:       #0d0d0d;
+      --card-bg:    rgba(20, 20, 20, 0.75);
+      --text:       #e8e8e8;
+      --text-muted: #aaa;
+      --radius:     24px;
+      --radius-card:28px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Montserrat', Arial, sans-serif;
+      background-color: var(--dark);
+      color: var(--text);
+      /* sem overflow no body — cada tela gerencia o próprio scroll */
+      overflow: hidden;
+    }
+
+    /* =============================================
+       TELAS
+    ============================================= */
+    .screen {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100vh;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.65s ease-in-out;
+      z-index: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* =============================================
+       TELA 1 — ABERTURA
+    ============================================= */
+    #screen1 {
+      background: url('assets/pepeto.png') center/cover no-repeat, #1a1a2e;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* garante que o overflow não quebre o layout */
+      overflow: hidden;
+    }
+
+    .overlay-dark {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.88) 100%);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ---- Partículas ---- */
+    .particles {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .particles span {
+      position: absolute;
+      display: block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      opacity: 0;
+      animation: floatParticle 8s infinite ease-in-out;
+      filter: blur(1px);
+    }
+
+    .particles span:nth-child(1)  { left: 5%;  animation-delay: 0s;   animation-duration: 9s;   width: 8px;  height: 8px; }
+    .particles span:nth-child(2)  { left: 20%; animation-delay: 1.5s; animation-duration: 7s; }
+    .particles span:nth-child(3)  { left: 35%; animation-delay: 0.8s; animation-duration: 11s; width: 10px; height: 10px; background: #ffaa33; }
+    .particles span:nth-child(4)  { left: 50%; animation-delay: 2.2s; animation-duration: 6s; }
+    .particles span:nth-child(5)  { left: 65%; animation-delay: 1s;   animation-duration: 10s; }
+    .particles span:nth-child(6)  { left: 80%; animation-delay: 3s;   animation-duration: 8s;  width: 7px;  height: 7px; }
+    .particles span:nth-child(7)  { left: 90%; animation-delay: 0.3s; animation-duration: 12s; background: #ff6600; }
+    .particles span:nth-child(8)  { left: 45%; animation-delay: 2.5s; animation-duration: 7.5s; }
+    .particles span:nth-child(9)  { left: 75%; animation-delay: 1.8s; animation-duration: 9s; }
+    .particles span:nth-child(10) { left: 15%; animation-delay: 4s;   animation-duration: 6.5s; }
+
+    @keyframes floatParticle {
+      0%   { bottom: -20px; opacity: 0;   transform: scale(0.5); }
+      20%  { opacity: 0.9; }
+      80%  { opacity: 0.6; }
+      100% { bottom: 110%; opacity: 0;   transform: scale(1.2); }
+    }
+
+    /* ---- Bloco central ---- */
+    /* CORREÇÃO: usava top:50% + transform ao mesmo tempo que a animação
+       tentava redefinir o transform — agora o flex do pai centraliza */
+    .content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 24px;
+      /* A transição só é ativada pelo JS ao sair da tela */
+      transition: transform 0.4s ease, opacity 0.4s ease;
+      animation: fadeInUp 1s ease-out both;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid rgba(255, 204, 0, 0.6);
+      padding: 8px 20px;
+      border-radius: 40px;
+      margin-bottom: 20px;
+      background: rgba(255, 204, 0, 0.12);
+      backdrop-filter: blur(4px);
+    }
+
+    .victor {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(80px, 15vw, 160px);
+      line-height: 1;
+      letter-spacing: 6px;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #ff2a2a 0%, #ffcc00 40%, #ff8800 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 2.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes shimmer {
+      0%   { filter: drop-shadow(0 0 20px rgba(255, 80,  0, 0.4)); letter-spacing: 6px; }
+      100% { filter: drop-shadow(0 0 55px rgba(255, 200, 0, 0.8)); letter-spacing: 8px; }
+    }
+
+    .call {
+      font-size: clamp(18px, 2.8vw, 24px);
+      margin: 0 auto 40px;
+      max-width: 600px;
+      line-height: 1.7;
+      color: #f0f0f0;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .call strong { color: var(--gold); }
+
+    /* ---- Botão global ---- */
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 18px 50px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 3px;
+      background: linear-gradient(135deg, var(--red), #ff4400);
+      color: #fff;
+      border: none;
+      border-radius: 60px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 0 30px rgba(232, 0, 14, 0.6), inset 0 1px 0 rgba(255,255,255,0.3);
+      animation: pulse 1.4s ease-in-out infinite alternate;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.2));
+      border-radius: 60px;
+      pointer-events: none;
+    }
+
+    button:hover   { transform: scale(1.05); box-shadow: 0 0 50px rgba(255, 68, 0, 0.85); }
+    button:active  { transform: scale(0.97); }
+    button:disabled { opacity: 0.55; pointer-events: none; }
+
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 20px rgba(232, 0, 14, 0.5); }
+      100% { box-shadow: 0 0 60px rgba(255, 100, 0, 0.9), 0 0 30px rgba(232, 0, 14, 0.4); }
+    }
+
+    /* =============================================
+       TELA 2 — JOGO
+    ============================================= */
+    #screen2 {
+      background: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      /* impede scroll — canvas não deve rolar */
+      overflow: hidden;
+    }
+
+    #gameScreen {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 16px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: var(--gold);
+      font-size: clamp(13px, 2.5vw, 20px);
+      font-weight: 700;
+      z-index: 10;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+      padding: 0 12px;
+      pointer-events: none;
+    }
+
+    /* Canvas do p5 */
+    canvas {
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(232, 0, 14, 0.5), 0 0 80px rgba(232, 0, 14, 0.2);
+      display: block;
+    }
+
+    /* ---- Controles mobile ---- */
+    #mobileControls {
+      display: none;
+      position: fixed;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      flex-direction: column;
+      gap: 12px;
+      z-index: 20;
+    }
+
+    /* Sobrescreve o estilo global de button APENAS para os botões mobile */
+    #mobileControls button {
+      width: 58px;
+      height: 58px;
+      padding: 0;
+      font-size: 24px;
+      border-radius: 50%;
+      animation: none;          /* remove pulse herdado */
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      letter-spacing: 0;
+      background: linear-gradient(135deg, #ff2a2a, #b00000);
+    }
+
+    @media (max-width: 768px), (pointer: coarse) {
+      #mobileControls { display: flex; }
+    }
+
+    /* =============================================
+       TELA 3 — VIP
+    ============================================= */
+    #screen3 {
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(232,0,14,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(255,204,0,0.10) 0%, transparent 60%),
+        #0a0a0f;
+    }
+
+    .vip-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 28px 100px;
+    }
+
+    /* ── Cabeçalho campeão ── */
+    .champion-header {
+      text-align: center;
+      margin-bottom: 60px;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .trophy-wrap {
+      font-size: 90px;
+      display: block;
+      margin-bottom: 16px;
+      animation: bounce 2s ease-in-out infinite;
+      filter: drop-shadow(0 0 15px gold);
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-12px); }
+    }
+
+    .champion {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(52px, 10vw, 96px);
+      letter-spacing: 6px;
+      background: linear-gradient(135deg, var(--gold) 0%, #ffaa33 40%, var(--red) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 14px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 18px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    /* ── Mensagem da Chefe — glassmorphism ── */
+    .mensagem-chefe {
+      background: rgba(20, 20, 30, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(232, 0, 14, 0.3);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+      padding: 48px 52px;
+      border-radius: 48px;
+      margin-bottom: 70px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Aspas decorativas */
+    .mensagem-chefe::before {
+      content: '"';
+      position: absolute;
+      top: -20px;
+      left: 30px;
+      font-size: 220px;
+      color: rgba(232, 0, 14, 0.08);
+      font-family: Georgia, serif;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .mensagem-label {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .mensagem-chefe p {
+      font-size: clamp(17px, 2.2vw, 21px);
+      line-height: 1.85;
+      color: #eaeaea;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 18px;
+    }
+
+    .mensagem-chefe p:last-child { margin-bottom: 0; }
+
+    /* ── Títulos de seção ── */
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(30px, 5vw, 44px);
+      letter-spacing: 5px;
+      color: var(--gold);
+      margin-bottom: 30px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    /* Linha decorativa */
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(to right, rgba(255,204,0,0.6), transparent);
+    }
+
+    /* ── Vídeos ── */
+    .videos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-bottom: 70px;
+    }
+
+    .video-card {
+      background: rgba(0,0,0,0.4);
+      border-radius: 32px;
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .video-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    .video-wrap {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; /* 16:9 */
+      background: #000;
+    }
+
+    .video-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
+    /* CORREÇÃO: herdava animation:pulse do seletor global button */
+    .fullscreen-btn {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(0,0,0,0.7);
+      border: none;
+      color: white;
+      font-size: 20px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 15;
+      backdrop-filter: blur(4px);
+      transition: background 0.2s;
+      animation: none;   /* cancela pulse herdado */
+      letter-spacing: 0;
+      padding: 0;
+    }
+
+    .fullscreen-btn:hover { background: rgba(232,0,14,0.9); }
+
+    /* ── Cards das homenagens ── */
+    .famosos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 80px;
+    }
+
+    .famoso-card {
+      background: rgba(25, 25, 35, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 28px 26px;
+      border-radius: 32px;
+      border: 1px solid rgba(255,255,255,0.1);
+      /* borda lateral colorida — definida pelas classes utilitárias abaixo */
+      border-left-width: 5px;
+      border-left-style: solid;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .famoso-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.55);
+      border-color: rgba(255,204,0,0.55);
+    }
+
+    .famoso-card h3 {
+      font-size: clamp(20px, 2.6vw, 24px);
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .famoso-card p {
+      font-size: clamp(15px, 1.9vw, 17px);
+      line-height: 1.75;
+      color: #d4d4d4;
+      flex-grow: 1; /* altura uniforme nos cards */
+    }
+
+    /* Cores das bordas e títulos */
+    .border-yellow { border-left-color: var(--gold); }
+    .border-yellow h3 { color: var(--gold); }
+
+    .border-blue   { border-left-color: #66ccff; }
+    .border-blue   h3 { color: #66ccff; }
+
+    .border-green  { border-left-color: #66ff66; }
+    .border-green  h3 { color: #66ff66; }
+
+    .border-orange { border-left-color: #ffaa33; }
+    .border-orange h3 { color: #ffaa33; }
+
+    /* =============================================
+       RESPONSIVO
+    ============================================= */
+    @media (max-width: 600px) {
+      .vip-content    { padding: 40px 16px 70px; }
+      .mensagem-chefe { padding: 28px 20px; border-radius: 32px; }
+      .famoso-card    { padding: 20px 18px; }
+      .section-title  { font-size: 28px; letter-spacing: 3px; }
+      .champion       { letter-spacing: 3px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── ÁUDIOS ── -->
+  <audio id="somKatchow" src="assets/katchow.mp3" preload="auto"></audio>
+  <audio id="somLisboa"  src="assets/lisboa.mp3"  preload="auto" loop></audio>
+
+  <!-- ===========================================================
+       TELA 1 — ABERTURA
+  =========================================================== -->
+  <div id="screen1" class="screen active">
+    <div class="overlay-dark"></div>
+
+    <div class="particles" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <div class="content">
+      <div class="badge">🏁 CONVITE OFICIAL 🏁</div>
+      <p class="call">
+        O grid de largada está pronto,<br>mas falta o piloto principal.<br>
+        <strong>Você foi convocado para a Copa Pistão.</strong>
+      </p>
+      <button id="startBtn" onclick="startGame()">
+        <span>⚡</span> ACEITAR DESAFIO <span>⚡</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===========================================================
+       TELA 2 — JOGO
+  =========================================================== -->
+  <div id="screen2" class="screen">
+    <div id="overlay">
+      🏁 Vença a corrida (5 pontos) para liberar o acesso VIP aos boxes! 🏁
+    </div>
+
+    <!-- controles mobile ficam FORA do gameScreen para não interferir no canvas -->
+    <div id="mobileControls">
+      <button id="btnUp"   aria-label="Mover para cima">▲</button>
+      <button id="btnDown" aria-label="Mover para baixo">▼</button>
+    </div>
+
+    <div id="gameScreen"></div>
+  </div>
+
+  <!-- ===========================================================
+       TELA 3 — VIP
+  =========================================================== -->
+  <div id="screen3" class="screen">
+    <div class="vip-content">
+
+      <!-- ── Cabeçalho ── -->
+      <div class="champion-header">
+        <div class="trophy-wrap">🏆</div>
+        <h1 class="champion">PARABÉNS, CAMPEÃO!</h1>
+        <p class="subtitle">Acesso liberado ao Paddock exclusivo.</p>
+      </div>
+
+      <!-- ══════════════════════════════════════════════
+           1) MENSAGEM DA CHEFE DE EQUIPE (TREINADORA)
+      ══════════════════════════════════════════════ -->
+      <div class="mensagem-chefe">
+        <div class="mensagem-label">MENSAGEM DA CHEFE DE EQUIPE</div>
+
+        <p>"Victor, no log da minha vida, você é a entrada que faz tudo funcionar perfeitamente. Hoje, a 'Chefe de Equipe' declara feriado em comemoração ao seu nascimento! 🏆❤️</p>
+
+        <p>Para o meu Victor, o meu Pepeto ❤️</p>
+
+        <p>Hoje o dia acordou mais iluminado, porque é o seu dia. Mas, para falar a verdade, os meus dias têm sido muito mais bonitos desde que você faz parte deles.</p>
+
+        <p>Victor, olhar para você e para tudo o que estamos construindo é ter a certeza de que a vida me deu um presente valioso. Você é meu porto seguro, meu companheiro de risadas e o dono do apelido mais carinhoso que meu coração já inventou. Ter você como meu "pepeto" é ter a sorte de compartilhar a rotina com alguém que me entende, me apoia e me faz querer ser melhor a cada dia.</p>
+
+        <p>Neste seu novo ciclo, meu desejo é que a vida seja generosa com você, assim como você é com o mundo. Que não faltem motivos para sorrir, saúde para conquistar seus sonhos e que a nossa caminhada continue sendo escrita com todo esse amor e respeito que nos une.</p>
+
+        <p>Obrigada por ser exatamente quem você é. Eu amo a nossa história, amo o nosso jeito e amo ainda mais comemorar a sua vida.</p>
+
+        <p>Feliz aniversário, meu amor! Que o seu dia seja tão especial quanto você é para mim. 🎂✨"</p>
+      </div>
+
+      <!-- ══════════════════════════════════════════════
+           2) VÍDEOS — 2 transmissões oficiais
+           (substitua os IDs do YouTube pelos reais)
+      ══════════════════════════════════════════ -->
+      <h2 class="section-title">📺 Transmissão Oficial</h2>
+      <div class="videos">
+
+        <div class="video-card">
+          <div class="video-wrap">
+            <iframe
+              id="video1"
+              src="https://www.youtube.com/embed/QwVwncLA7Tw"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen>
+            </iframe>
+            <button class="fullscreen-btn" data-video="video1" title="Tela cheia">⛶</button>
+          </div>
+        </div>
+
+        <div class="video-card">
+          <div class="video-wrap">
+            <iframe
+              id="video2"
+              src="https://www.youtube.com/embed/I1N0G1ZMmqc"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen>
+            </iframe>
+            <button class="fullscreen-btn" data-video="video2" title="Tela cheia">⛶</button>
+          </div>
+        </div>
+
+      </div><!-- /videos -->
+
+      <!-- ══════════════════════════════════════════════
+           3) RÁDIO DA EQUIPE — 4 HOMENAGENS
+      ══════════════════════════════════════════════ -->
+      <h2 class="section-title">📻 Rádio da Equipe</h2>
+      <div class="famosos-grid">
+
+        <div class="famoso-card border-yellow">
+          <h3>⚡ Relâmpago McQueen</h3>
+          <p>Ka-Chow! Feliz aniversário, Victor! Fiquei sabendo lá em Radiator Springs que hoje é o dia de um dos meus maiores fãs! A vida é igualzinha a uma corrida da Copa Pistão: tem umas curvas fechadas, umas retas longas pra gente acelerar fundo e, de vez em quando, a gente precisa dar aquela paradinha no pit stop com a família e os amigos para reabastecer as energias. Que esse seu novo ano seja em alta performance, cheio de vitórias e sem nenhum pneu furado no caminho! Velocidade, você é a velocidade! Ka-Chow! ⚡🏆</p>
+        </div>
+
+        <div class="famoso-card border-blue">
+          <h3>🏓 Hugo Calderano</h3>
+          <p>Fala, Victor! Hoje não é só mais um dia — é o dia de alguém que consegue ser ao mesmo tempo engraçado, competitivo e aquele parceiro que faz qualquer momento ficar melhor. Sei que você também curte uma sinuca 🎱 e gosta de mandar bem em tudo o que joga — foco, estratégia e aquela vontade de ganhar. Que nesse novo ciclo você tenha ainda mais momentos bons, consiga realizar esse sonho da mesa própria e continue sendo esse cara especial! 🏓</p>
+        </div>
+
+        <div class="famoso-card border-green">
+          <h3>⚽ Neymar Junior</h3>
+          <p>Fala, irmão! Hoje é teu dia, então já começa daquele jeito: resenha, risada e fazendo o que você mais gosta! Fiquei sabendo que você é santista de coração desde moleque — me contaram até da história do hospital com o braço quebrado sem tirar a camisa do Peixão por nada! 🐳🤍🖤 A vida é tipo jogo grande, mano. Vai ter dia difícil, mas o importante é nunca parar, continuar acreditando e jogando com alegria. Aproveita teu dia! 👊🔥</p>
+        </div>
+
+        <div class="famoso-card border-orange">
+          <h3>🎱 Baianinho de Mauá</h3>
+          <p>Rapaz, me sopraram aqui que hoje é o seu aniversário! Me contaram que você tem a própria mesa em casa e que o bicho pega nas partidas contra seu pai e seus irmãos. E o detalhe mais perigoso: desde que você ganhou aquele taco novo de respeito, ninguém mais tá te segurando! Fico muito feliz e honrado em saber que você me tem como inspiração nas jogadas. Que nesse novo ciclo você continue encaçapando todas as bolas difíceis da vida! 🏆🎱</p>
+        </div>
+
+      </div><!-- /famosos-grid -->
+
+    </div><!-- /vip-content -->
+  </div><!-- /screen3 -->
+
+  <script>
+    /* ==========================================
+       SONS
+    ========================================== */
+    function startLisboa() {
+      const el = document.getElementById("somLisboa");
+      if (el && el.paused) {
+        el.volume = 0.45;
+        el.play().catch(() => {});
+      }
+    }
+
+    function stopLisboa() {
+      const el = document.getElementById("somLisboa");
+      if (el) { el.pause(); el.currentTime = 0; }
+    }
+
+    function playKatchow() {
+      const el = document.getElementById("somKatchow");
+      if (el) { el.currentTime = 0; el.play().catch(() => {}); }
+    }
+
+    /* ==========================================
+       NAVEGAÇÃO ENTRE TELAS
+    ========================================== */
+    let gameStarted = false;
+
+    function startGame() {
+      if (gameStarted) return;
+      gameStarted = true;
+
+      const btn = document.getElementById("startBtn");
+      if (btn) btn.disabled = true;
+
+      startLisboa();
+
+      // Fade-out do conteúdo antes de trocar a tela
+      const content = document.querySelector('#screen1 .content');
+      if (content) {
+        content.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+        content.style.transform  = 'scale(1.15)';
+        content.style.opacity    = '0';
+      }
+
+      setTimeout(() => {
+        document.getElementById("screen1").classList.remove("active");
+        document.getElementById("screen2").classList.add("active");
+        window.dispatchEvent(new Event('resize')); // redimensiona o canvas p5
+      }, 400);
+    }
+
+    function unlockSite() {
+      stopLisboa();
+      playKatchow();
+
+      // Flash dourado no game screen
+      const gs = document.getElementById("gameScreen");
+      if (gs) {
+        gs.style.transition = 'background-color 0.25s';
+        gs.style.backgroundColor = "gold";
+        setTimeout(() => { gs.style.backgroundColor = ""; }, 300);
+      }
+
+      setTimeout(() => {
+        document.getElementById("screen2").classList.remove("active");
+        const s3 = document.getElementById("screen3");
+        s3.classList.add("active");
+        s3.scrollTop = 0;
+        if (typeof noLoop === 'function') noLoop(); // para o loop do p5
+      }, 800);
+    }
+
+    /* ==========================================
+       TELA CHEIA NOS VÍDEOS
+    ========================================== */
+    function initFullscreenButtons() {
+      document.querySelectorAll('.fullscreen-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const iframe = document.getElementById(btn.getAttribute('data-video'));
+          if (!iframe) return;
+          const req = iframe.requestFullscreen
+                   || iframe.webkitRequestFullscreen
+                   || iframe.msRequestFullscreen;
+          if (req) req.call(iframe);
+        });
+      });
+    }
+
+    /* ==========================================
+       CONTROLES MOBILE
+    ========================================== */
+    function setupMobileControls() {
+      const btnUp   = document.getElementById('btnUp');
+      const btnDown = document.getElementById('btnDown');
+      if (!btnUp || !btnDown) return;
+
+      const go   = dir => () => { if (typeof paddleOne !== 'undefined') paddleOne.switchMoveDirection(dir); };
+      const stop = ()  => { if (typeof paddleOne !== 'undefined') paddleOne.switchMoveDirection('none'); };
+
+      [[btnUp, 'up'], [btnDown, 'down']].forEach(([el, dir]) => {
+        el.addEventListener('touchstart',  e => { e.preventDefault(); go(dir)(); }, { passive: false });
+        el.addEventListener('touchend',    stop);
+        el.addEventListener('touchcancel', stop);
+        el.addEventListener('mousedown',   go(dir));
+        el.addEventListener('mouseup',     stop);
+        el.addEventListener('mouseleave',  stop);
+        el.addEventListener('contextmenu', e => e.preventDefault());
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setupMobileControls();
+      initFullscreenButtons();
+    });
+
+    /* ==========================================
+       P5.JS — JOGO DA COPA PISTÃO
+    ========================================== */
+
+    /* ---------- Ball ---------- */
+    class Ball {
+      constructor(x, y, radius) {
+        this.x       = x;
+        this.y       = y;
+        this.shadowY = y;
+        this.radius  = radius;
+        this.velocity = createVector(radius * 0.21, random(-radius * 0.084, radius * 0.084));
+      }
+      update(ballArc) {
+        this.x       += this.velocity.x;
+        this.shadowY += this.velocity.y;
+        this.y        = this.shadowY - ballArc;
+      }
+      render() {
+        push();
+        noStroke();
+        fill(0, 0, 0, 100);
+        ellipse(this.x, this.shadowY, this.radius);
+        stroke(54);
+        strokeWeight(1);
+        fill(255, 255, 0);
+        ellipse(this.x, this.y, this.radius);
+        pop();
+      }
+    }
+
+    /* ---------- Paddle ---------- */
+    class Paddle {
+      constructor(x, y, slope, bottomBound, topBound, imageCar, isPlayer, w) {
+        this.x              = x;
+        this.y              = y;
+        this.bottomBound    = bottomBound;
+        this.topBound       = topBound;
+        this.slope          = -slope;
+        this.imageCar       = imageCar;
+        this.width          = w;
+        this.height         = w * 1.5;
+        this.moveDirection  = "none";
+        this.isPlayer       = isPlayer;
+        this.playerHasMoved = false;
+      }
+      move() {
+        const speed = this.height * (this.isPlayer ? 0.08 : 0.01);
+        if (this.moveDirection === 'up' && this.y > this.topBound) {
+          this.y -= speed;
+          this.x += (speed / this.slope);
+        } else if (this.moveDirection === 'down' && this.y < this.bottomBound) {
+          this.y += speed;
+          this.x -= (speed / this.slope);
+        }
+      }
+      autoMove(ballY) {
+        const diff = this.y - ballY;
+        if      (diff < 0 && diff < -this.height * 0.3) this.switchMoveDirection('down');
+        else if (diff > 0 && diff >  this.height * 0.3) this.switchMoveDirection('up');
+        else                                             this.switchMoveDirection('none');
+        this.move();
+      }
+      switchMoveDirection(type) {
+        this.moveDirection = type;
+        if (type !== 'none') this.playerHasMoved = true;
+      }
+      render() {
+        if (this.imageCar) {
+          imageMode(CENTER);
+          image(this.imageCar, this.x, this.y, this.width * 3, this.height * 3);
+          if (this.isPlayer && !this.playerHasMoved) {
+            push();
+            textSize(14);
+            fill(255);
+            noStroke();
+            textAlign(CENTER);
+            text("Setinhas para mover!", this.x, this.y - (this.height * 2.2));
+            pop();
+          }
+        } else {
+          rectMode(CENTER);
+          noStroke();
+          fill(this.isPlayer ? color(232, 0, 14) : color(50, 150, 255));
+          rect(this.x, this.y, this.width, this.height * 2, 4);
+        }
+      }
+    }
+
+    /* ---------- Variáveis globais ---------- */
+    let gameW, gameH;
+    let courtTopLeftX, courtTopLeftY, courtBottomLeftX, courtBottomLeftY;
+    let courtBottomRightX, courtBottomRightY, courtTopRightX, courtTopRightY;
+    let padding, quadOffset;
+    let paddleOne, paddleTwo, ball;
+    let leftPlayerScore = 0, rightPlayerScore = 0, gameFinished = false;
+    let imgMcQueen, imgSally;
+    let courtWidth, maxBallArc, oneFourthPoint, threeFourthsPoint;
+    let leftScoreScale = 1, rightScoreScale = 1, scaleTimer = 0;
+
+    /* ---------- p5: preload ---------- */
+    function preload() {
+      imgMcQueen = loadImage('assets/mcqueen.png', () => {}, () => console.warn("McQueen não carregado"));
+      imgSally   = loadImage('assets/sally.png',   () => {}, () => console.warn("Sally não carregada"));
+    }
+
+    /* ---------- p5: setup ---------- */
+    function setup() {
+      gameH = min(window.innerHeight, window.innerWidth / 2);
+      gameW = min(window.innerWidth, gameH * 2);
+      let canvas = createCanvas(gameW, gameH);
+      canvas.parent("gameScreen");
+      leftPlayerScore = 0; rightPlayerScore = 0; gameFinished = false;
+      setupCourtCoordinates();
+      setupPaddles();
+      ball = new Ball(gameW * 0.5, gameH * 0.5, gameW * 0.021);
+    }
+
+    /* ---------- p5: draw ---------- */
+    function draw() {
+      paddleOne.move();
+      paddleTwo.autoMove(ball.y);
+      updateBall();
+      isColliding();
+      didHitWall();
+      didScore();
+
+      background(20);
+      drawTrack();
+      drawFinishLine();
+      paddleOne.render();
+      paddleTwo.render();
+      ball.render();
+
+      if (scaleTimer > 0) {
+        scaleTimer--;
+        if (scaleTimer === 0) {
+          leftScoreScale = 1; rightScoreScale = 1;
+        } else {
+          leftScoreScale  = max(1, leftScoreScale  - 0.05);
+          rightScoreScale = max(1, rightScoreScale - 0.05);
+        }
+      }
+      drawScore();
+    }
+
+    /* ---------- p5: windowResized ---------- */
+    function windowResized() {
+      gameH = min(window.innerHeight, window.innerWidth / 2);
+      gameW = min(window.innerWidth, gameH * 2);
+      resizeCanvas(gameW, gameH);
+      setupCourtCoordinates();
+      setupPaddles();
+      ball = new Ball(gameW * 0.5, gameH * 0.5, gameW * 0.021);
+    }
+
+    function setupCourtCoordinates() {
+      padding    = gameH * 0.125;
+      quadOffset = gameW * 0.125;
+      courtTopLeftX     = padding + quadOffset;
+      courtTopLeftY     = padding;
+      courtBottomLeftX  = padding;
+      courtBottomLeftY  = gameH - padding;
+      courtBottomRightX = gameW - padding - quadOffset;
+      courtBottomRightY = gameH - padding;
+      courtTopRightX    = gameW - padding;
+      courtTopRightY    = padding;
+    }
+
+    function setupPaddles() {
+      const bottomBound = courtBottomLeftY, topBound = courtTopRightY;
+      const slope  = (courtBottomLeftY - courtTopLeftY)  / (courtBottomLeftX  - courtTopLeftX);
+      paddleOne = new Paddle(courtBottomLeftX + 30, courtBottomLeftY - 60, slope, bottomBound, topBound, imgMcQueen, true, gameW * 0.03);
+      const slope2 = (courtTopRightY - courtBottomRightY) / (courtTopRightX - courtBottomRightX);
+      paddleTwo = new Paddle(courtTopRightX - 70, courtTopRightY + 60, slope2, bottomBound, topBound, imgSally, false, gameW * 0.03);
+    }
+
+    /* ---------- Controles teclado ---------- */
+    function keyReleased() {
+      if ([UP_ARROW, DOWN_ARROW, 87, 83].includes(keyCode)) paddleOne.switchMoveDirection('none');
+    }
+    function keyPressed() {
+      if      (keyCode === UP_ARROW   || keyCode === 87) paddleOne.switchMoveDirection('up');
+      else if (keyCode === DOWN_ARROW || keyCode === 83) paddleOne.switchMoveDirection('down');
+    }
+
+    /* ---------- Colisões ---------- */
+    function isColliding() {
+      const bot = ball.y + ball.radius, top = ball.y - ball.radius;
+      if (ball.x >= paddleOne.x - paddleOne.width && ball.x <= paddleOne.x + paddleOne.width &&
+          top <= paddleOne.y + paddleOne.height && bot >= paddleOne.y - paddleOne.height) {
+        playerCollisionEvent();
+      } else if (ball.x >= paddleTwo.x - paddleTwo.width && ball.x <= paddleTwo.x + paddleTwo.width &&
+                 top <= paddleTwo.y + paddleTwo.height && bot >= paddleTwo.y - paddleTwo.height) {
+        computerCollisionEvent();
+      }
+    }
+
+    function playerCollisionEvent() {
+      ball.velocity.x *= -1.05;
+      ball.x = paddleOne.x + paddleOne.width + 5;
+      const xVel = ball.velocity.x;
+      const maxTop = (courtTopRightY    - (paddleOne.y - paddleOne.height)) / (courtTopRightX    - (paddleOne.x + paddleOne.width));
+      const maxBot = (courtBottomRightY - (paddleOne.y + paddleOne.height)) / (courtBottomRightX - (paddleOne.x + paddleOne.width));
+      ball.velocity.y = (ball.y < paddleOne.y)
+        ? map(-random(4), -4, 0, xVel * maxTop, 0)
+        : map( random(4),  0, 4, 0, xVel * maxBot);
+    }
+
+    function computerCollisionEvent() {
+      ball.velocity.x *= -1.05;
+      ball.x = paddleTwo.x - paddleTwo.width - 4;
+      const xVel = ball.velocity.x;
+      const maxTop = (courtTopLeftY    - (paddleTwo.y - paddleTwo.height)) / (courtTopLeftX    - (paddleTwo.x - paddleTwo.width));
+      const maxBot = (courtBottomLeftY - (paddleTwo.y + paddleTwo.height)) / (courtBottomLeftX - (paddleTwo.x - paddleTwo.width));
+      ball.velocity.y = (ball.y < paddleTwo.y)
+        ? map(-random(4), -4, 0, xVel * maxTop, 0)
+        : map( random(4),  0, 4, 0, xVel * maxBot);
+    }
+
+    function resetBall() {
+      ball.x = gameW * 0.5; ball.y = gameH * 0.5; ball.shadowY = gameH * 0.5;
+      ball.velocity.x = (ball.velocity.x < 0) ? ball.radius * 0.21 : -(ball.radius * 0.21);
+      ball.velocity.y = random(-ball.radius * 0.084, ball.radius * 0.084);
+    }
+
+    function didHitWall() {
+      if (ball.y <= courtTopLeftY || ball.y >= courtBottomLeftY) ball.velocity.y *= -1;
+    }
+
+    function didScore() {
+      if (ball.x <= courtBottomLeftX) { rightPlayerScore++; rightScoreScale = 1.5; scaleTimer = 10; resetBall(); }
+      if (ball.x >= courtTopRightX)   { leftPlayerScore++;  leftScoreScale  = 1.5; scaleTimer = 10; resetBall(); }
+      if (leftPlayerScore >= 5 && !gameFinished) {
+        gameFinished = true;
+        push();
+        textSize(32); fill(255, 215, 0); textAlign(CENTER);
+        text("VITÓRIA! ACESSO VIP LIBERADO", width / 2, height / 2);
+        pop();
+        setTimeout(() => unlockSite(), 1000);
+      }
+    }
+
+    function updateBall() {
+      maxBallArc        = gameH * 0.0625;
+      courtWidth        = gameW - (2 * padding) - quadOffset;
+      oneFourthPoint    = courtBottomLeftX + quadOffset * 0.5 + courtWidth * 0.25;
+      threeFourthsPoint = courtTopRightX   - quadOffset * 0.5 - courtWidth * 0.25;
+      const oneRacketX = paddleOne.x + paddleOne.width;
+      const twoRacketX = paddleTwo.x - paddleTwo.width;
+      let ballArc;
+      if (ball.velocity.x > 0) {
+        if      (ball.x <= gameW * 0.5)        ballArc = map(ball.x, oneRacketX,       gameW * 0.5,      maxBallArc * 0.5, maxBallArc);
+        else if (ball.x <= threeFourthsPoint)  ballArc = map(ball.x, gameW * 0.5,      threeFourthsPoint, maxBallArc, 0);
+        else                                   ballArc = map(ball.x, threeFourthsPoint, twoRacketX,       0, maxBallArc * 0.5);
+      } else {
+        if      (ball.x >= gameW * 0.5)        ballArc = map(ball.x, twoRacketX,       gameW * 0.5,     maxBallArc * 0.5, maxBallArc);
+        else if (ball.x >= oneFourthPoint)     ballArc = map(ball.x, gameW * 0.5,      oneFourthPoint,   maxBallArc, 0);
+        else                                   ballArc = map(ball.x, oneFourthPoint,   oneRacketX,       0, maxBallArc * 0.5);
+      }
+      ball.update(ballArc);
+    }
+
+    /* ---------- Desenhos ---------- */
+    function drawTrack() {
+      noStroke();
+      fill(180, 20, 20);
+      quad(courtTopLeftX, courtTopLeftY, courtBottomLeftX, courtBottomLeftY,
+           courtBottomRightX, courtBottomRightY, courtTopRightX, courtTopRightY);
+      strokeWeight(4); stroke(255);
+      line(courtTopLeftX, courtTopLeftY, courtTopRightX, courtTopRightY);
+      line(courtBottomLeftX, courtBottomLeftY, courtBottomRightX, courtBottomRightY);
+    }
+
+    function drawFinishLine() {
+      const squareSize = gameH * 0.04;
+      const startX     = gameW * 0.5 - squareSize;
+      noStroke();
+      for (let y = padding; y < gameH - padding; y += squareSize)
+        for (let col = 0; col < 2; col++) {
+          fill((col + Math.floor((y - padding) / squareSize)) % 2 === 0 ? 255 : 0);
+          rect(startX + col * squareSize, y, squareSize, squareSize);
+        }
+    }
+
+    function drawScore() {
+      push(); textStyle(BOLD); noStroke();
+      push();
+      translate(padding + quadOffset + (courtWidth * 0.25), padding - 15);
+      scale(leftScoreScale); textSize(gameH * 0.1); fill('#ffcc00'); textAlign(RIGHT);
+      text(leftPlayerScore, 0, 0);
+      pop();
+      push();
+      translate(gameW - padding - (courtWidth * 0.25), padding - 15);
+      scale(rightScoreScale); textSize(gameH * 0.1); fill('#66ccff'); textAlign(LEFT);
+      text(rightPlayerScore, 0, 0);
+      pop();
+      pop();
+    }
+  </script>
+</body>
+</html>
